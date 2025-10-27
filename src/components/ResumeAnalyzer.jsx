@@ -1,29 +1,5 @@
 import { useState, useEffect } from "react";
-
-
-
-
-function ReadMoreText({ text, limit = 100 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const toggleReadMore = () => setIsExpanded(!isExpanded);
-
-  const displayText = isExpanded ? text : text.slice(0, limit) + (text.length > limit ? "..." : "");
-
-  return (
-    <p>
-      {displayText}{" "}
-      {text.length > limit && (
-        <span
-          onClick={toggleReadMore}
-          style={{ color: "blue", cursor: "pointer" }}
-        >
-          {isExpanded ? "Read less" : "Read more"}
-        </span>
-      )}
-    </p>
-  );
-}
+import ReadMoreText from "./ReadMoreText";
 
 
 export default function ResumeAnalyzer() {
@@ -238,6 +214,7 @@ export default function ResumeAnalyzer() {
             <table className="min-w-full border text-sm">
               <thead className="bg-gray-100">
                 <tr>
+                  <th className="border px-4 py-2">Id</th>
                   <th className="border px-4 py-2">Date</th>
                   <th className="border px-4 py-2">Job Description</th>
                   <th className="border px-4 py-2">Match %</th>
@@ -248,6 +225,9 @@ export default function ResumeAnalyzer() {
               <tbody>
                 {history.map((item) => (
                   <tr key={item._id} className="hover:bg-gray-50">
+                    <td className="border px-4 py-2">
+                      {item._id}
+                    </td>
                     <td className="border px-4 py-2">
                       {new Date(item.createdAt).toLocaleString()}
                     </td>
