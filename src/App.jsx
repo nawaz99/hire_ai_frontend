@@ -18,7 +18,7 @@ export default function App() {
     setResult(null);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/analyze", {
+      const res = await axios.post("https://hire-ai-backend.vercel.app/api/analyze", {
         resumeText: resume,
         jobDescription: job,
       });

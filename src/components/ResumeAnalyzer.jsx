@@ -35,7 +35,7 @@ export default function ResumeAnalyzer() {
 
   // Fetch past analyses
   useEffect(() => {
-    fetch("http://localhost:5000/api/getResults")
+    fetch("https://hire-ai-backend.vercel.app/api/getResults")
       .then((res) => res.json())
       .then((data) => setHistory(data))
       .catch(console.error);
@@ -53,7 +53,7 @@ export default function ResumeAnalyzer() {
     setResult(null);
 
     try {
-      const res = await fetch("http://localhost:5000/api/upload-resume", {
+      const res = await fetch("https://hire-ai-backend.vercel.app/api/upload-resume", {
         method: "POST",
         body: formData,
       });
@@ -62,7 +62,7 @@ export default function ResumeAnalyzer() {
       setResult(data);
 
       // Save summary result in DB
-      await fetch("http://localhost:5000/api/saveResult", {
+      await fetch("https://hire-ai-backend.vercel.app/api/saveResult", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -74,7 +74,7 @@ export default function ResumeAnalyzer() {
         }),
       });
 
-      const histRes = await fetch("http://localhost:5000/api/getResults");
+      const histRes = await fetch("https://hire-ai-backend.vercel.app/api/getResults");
       const histData = await histRes.json();
       setHistory(histData);
     } catch (err) {
