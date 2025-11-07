@@ -1,37 +1,59 @@
-import React, { useState } from "react";
-import axios from "axios";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useContext, useEffect } from "react";
+import Login from "./components/Login";
+import Register from "./components/Register";
 import ResumeAnalyzer from "./components/ResumeAnalyzer";
+import PrivateRoute from "./components/PrivateRoute";
+import DashboardLayout from "./layouts/DashboardLayout";
+import Profile from "./components/Profile";
+import Settings from "./components/Settings";
+import History from "./components/History";
+import CandidateOverview from "./components/CandidateOverview";
+import { SettingsContext } from "./context/SettingsContext";
 
 export default function App() {
-  const [resume, setResume] = useState("");
-  const [job, setJob] = useState("");
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { settings } = useContext(SettingsContext);
 
-  const handleAnalyze = async () => {
-    if (!resume || !job) {
-      alert("Please enter both Resume and Job Description!");
-      return;
+  // ✅ Apply dark mode, theme color globally
+  useEffect(() => {
+    const root = document.documentElement;
+
+    // Dark Mode toggle
+    if (settings.darkMode) {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
     }
 
-    setLoading(true);
-    setResult(null);
-
-    try {
-      const res = await axios.post("https://hire-ai-backend.vercel.app/api/analyze", {
-        resumeText: resume,
-        jobDescription: job,
-      });
-      setResult(res.data);
-    } catch (error) {
-      console.error(error);
-      alert("Error connecting to backend. Please check server logs.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Theme color
+    root.style.setProperty("--theme-color", settings.themeColor);
+  }, [settings]);
 
   return (
-    <ResumeAnalyzer />
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          }
+        >
+          {/* Nested Pages inside Layout */}
+          <Route index element={<ResumeAnalyzer />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="history" element={<History />} />
+          <Route path="candidate/:id" element={<CandidateOverview />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
