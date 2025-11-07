@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axiosInstance"; // ✅ centralized axios instance
+import api from "../api/AxiosInstance"; // ✅ centralized axios instance
 import { SettingsContext } from "../context/SettingsContext";
 
 export default function HistoryPage() {
