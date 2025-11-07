@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api", // change to your backend URL
+  baseURL: "https://www.startogen.com/api", // change to your backend URL
   withCredentials: true,
 });
 
