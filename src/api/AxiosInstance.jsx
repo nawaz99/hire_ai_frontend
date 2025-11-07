@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://www.startogen.com/api", // change to your backend URL
+  baseURL: "hire-ai-backend.vercel.app/api", // change to your backend URL
   withCredentials: true,
 });
 
