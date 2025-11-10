@@ -130,7 +130,7 @@ export default function ResumeAnalyzer() {
             className={`w-full py-3 font-semibold rounded-lg text-white transition ${
               loading
                 ? "bg-gray-400 cursor-not-allowed"
-                : `bg-${settings.themeColor}-600 hover:bg-${settings.themeColor}-700`
+                : `bg-${settings.themeColor}-500 hover:bg-${settings.themeColor}-600`
             }`}
           >
             {loading ? "Analyzing..." : "Upload & Analyze"}
@@ -334,7 +334,7 @@ export default function ResumeAnalyzer() {
                       <td className="border px-4 py-2 text-center">
                         <button
                           onClick={() => navigate(`candidate/${item._id}`)}
-                          className={`px-3 py-1 rounded-md text-white transition bg-${settings.themeColor}-600 hover:bg-${settings.themeColor}-700`}
+                          className={`px-3 py-1 rounded-md text-white transition bg-${settings.themeColor}-500 hover:bg-${settings.themeColor}-600`}
                         >
                           View
                         </button>
