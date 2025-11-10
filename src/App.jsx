@@ -10,6 +10,7 @@ import Settings from "./components/Settings";
 import History from "./components/History";
 import CandidateOverview from "./components/CandidateOverview";
 import { SettingsContext } from "./context/SettingsContext";
+import LandingPage from "./pages/LandingPage";
 
 export default function App() {
   const { settings } = useContext(SettingsContext);
@@ -33,7 +34,7 @@ export default function App() {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
