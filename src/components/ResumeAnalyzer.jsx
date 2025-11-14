@@ -84,12 +84,12 @@ export default function ResumeAnalyzer() {
   return (
     <div
       className={`min-h-screen transition-colors duration-500 ${
-        settings.darkMode ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-800"
+        settings.darkMode ? "bg-gray-900 text-gray-100" : `bg-gray-50 text-gray-800`
       }`}
     >
-      <main className="max-w-7xl mx-auto p-6">
+      <main className="max-w-7xl mx-auto p-2">
         <h2
-          className={`text-2xl font-semibold mb-6 text-center ${
+          className={`text-xl font-semibold mb-6 text-center ${
             settings.darkMode ? "text-gray-100" : "text-gray-800"
           }`}
         >
@@ -99,7 +99,7 @@ export default function ResumeAnalyzer() {
         {/* Upload Form */}
         <form
           onSubmit={handleUpload}
-          className={`space-y-4 p-6 rounded-2xl shadow-md border transition-all ${
+          className={`space-y-4 p-2 rounded-2xl shadow-md border transition-all ${
             settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
           }`}
         >
@@ -152,7 +152,7 @@ export default function ResumeAnalyzer() {
         {/* Analysis Result */}
         {result && !loading && (
           <div
-            className={`mt-6 p-6 border rounded-2xl shadow-md space-y-4 transition-all ${
+            className={`mt-6 p-2 border rounded-2xl shadow-md space-y-4 transition-all ${
               settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
             }`}
           >
@@ -242,13 +242,13 @@ export default function ResumeAnalyzer() {
         {/* History Table */}
         {history.length > 0 && !loading && (
           <div
-            className={`mt-10 p-6 rounded-2xl shadow-md border transition-all ${
+            className={`mt-10 p-2 rounded-2xl shadow-md border transition-all ${
               settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
             }`}
           >
             <div className="flex items-center justify-between mb-4">
               <h3
-                className={`text-2xl font-bold ${
+                className={`text-xl font-bold ${
                   settings.darkMode ? "text-gray-100" : "text-gray-800"
                 }`}
               >
@@ -289,7 +289,7 @@ export default function ResumeAnalyzer() {
                       "Recommendation",
                       "Action",
                     ].map((h) => (
-                      <th key={h} className="border px-4 py-2 text-left">
+                      <th key={h} className="border px-2 py-2 text-left">
                         {h}
                       </th>
                     ))}
@@ -303,25 +303,25 @@ export default function ResumeAnalyzer() {
                         settings.darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"
                       }`}
                     >
-                      <td className="border px-4 py-2">{item._id.slice(-6)}</td>
-                      <td className="border px-4 py-2">{item.candidateName || "—"}</td>
-                      <td className="border px-4 py-2">
+                      <td className="border px-2 py-2">{item._id.slice(-6)}</td>
+                      <td className="border px-2 py-2">{item.candidateName || "—"}</td>
+                      <td className="border px-2 py-2">
                         {new Date(item.createdAt).toLocaleString()}
                       </td>
-                      <td className="border px-4 py-2 max-w-xs truncate">
+                      <td className="border px-2 py-2 max-w-xs truncate">
                         {item.jobDescription}
                       </td>
-                      <td className="border px-4 py-2 text-center font-semibold">
+                      <td className="border px-2 py-2 text-center font-semibold">
                         {item.matchPercentage}%
                       </td>
-                      <td className="border px-4 py-2 text-green-500">
+                      <td className="border px-2 py-2 text-green-500">
                         {item.matchingSkills?.join(", ") || "-"}
                       </td>
-                      <td className="border px-4 py-2 text-red-500">
+                      <td className="border px-2 py-2 text-red-500">
                         {item.missingSkills?.join(", ") || "-"}
                       </td>
                       <td
-                        className={`border px-4 py-2 font-medium ${
+                        className={`border px-2 py-2 font-medium ${
                           item.recommendation === "Strong match"
                             ? "text-green-500"
                             : item.recommendation === "Good potential fit"
@@ -331,7 +331,7 @@ export default function ResumeAnalyzer() {
                       >
                         {item.recommendation || "-"}
                       </td>
-                      <td className="border px-4 py-2 text-center">
+                      <td className="border px-2 py-2 text-center">
                         <button
                           onClick={() => navigate(`candidate/${item._id}`)}
                           className={`px-3 py-1 rounded-md text-white transition bg-${settings.themeColor}-500 hover:bg-${settings.themeColor}-600`}

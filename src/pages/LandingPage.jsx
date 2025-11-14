@@ -12,9 +12,10 @@ export default function LandingPage() {
 
       {/* Navbar */}
       <header className="flex items-center justify-between px-10 py-6 backdrop-blur-xl bg-white/40 border-b border-[#EDEDED] relative z-10 shadow-sm">
-        <h1 className="text-2xl font-extrabold tracking-wide text-[#FF7F50]">
-          Startogen
+        <h1 className="text-2xl">
+          <span className="text-[#FF7F50]">Startogen</span> | <span className="text-gray-700">Resume Analyzer</span>
         </h1>
+
 
         <nav className="flex items-center gap-4">
           <button
@@ -35,8 +36,8 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <div className="flex flex-col items-center text-center py-20 px-5 relative z-10">
-        <h2 className="text-6xl font-extrabold max-w-3xl leading-tight tracking-tight">
-          Startogen
+        <h2 className="text-4xl  max-w-3xl leading-tight tracking-tight">
+          Startogen AI resume Analyzer
           <span className="block text-[#FF7F50]">Smart hiring starts here.</span>
         </h2>
 
@@ -55,7 +56,7 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section className="px-10 py-16 bg-white relative z-10 bg-opacity-60 backdrop-blur-xl">
-        <h3 className="text-3xl font-bold text-center">Why Startogen?</h3>
+        <h3 className="text-3xl text-center">Why Startogen AI Resume Analyzer?</h3>
 
         <p className="text-gray-600 text-center mt-4 max-w-2xl mx-auto text-lg">
           Upload a resume and job description — our AI evaluates skill match,

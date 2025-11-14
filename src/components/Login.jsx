@@ -51,7 +51,7 @@ export default function Login() {
 
         {/* LEFT – BRAND VALUE SECTION */}
         <div className="hidden lg:flex flex-col max-w-xl">
-          <h1 className="text-6xl font-extrabold tracking-tight leading-tight">
+          <h1 className="text-6xl tracking-tight leading-tight">
             Startogen
             <span className="block text-[#FF7F50]">Hire with confidence.</span>
           </h1>
@@ -62,10 +62,10 @@ export default function Login() {
           </p>
 
           <div className="mt-8 space-y-4 text-md font-medium text-gray-700 dark:text-gray-300">
-            <Feature point="🚀 Resume-to-Job match % (ATS aligned)" />
-            <Feature point="🧠 AI improvements + formatting suggestions" />
-            <Feature point="📌 Missing keyword highlights" />
-            <Feature point="⌛ Reduce screening time by 80%" />
+            <Feature point="Resume-to-Job match % (ATS aligned)" />
+            <Feature point="AI improvements + formatting suggestions" />
+            <Feature point="Missing keyword highlights" />
+            <Feature point="Reduce screening time by 80%" />
           </div>
 
           <p className="mt-10 text-sm text-gray-500 italic">
@@ -82,7 +82,7 @@ export default function Login() {
           }`}
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-[#FF7F50]">Welcome Back 👋</h2>
+            <h2 className="text-3xl font-bold text-[#FF7F50]">Welcome Back</h2>
             <p className="mt-2 text-gray-500 dark:text-gray-400 text-sm">
               Log in to continue your hiring workflow.
             </p>

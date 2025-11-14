@@ -30,6 +30,7 @@ export default function Settings() {
     green: "bg-green-500 hover:bg-green-600",
     purple: "bg-purple-500 hover:bg-purple-600",
     rose: "bg-rose-500 hover:bg-rose-600",
+    orange: "bg-orange-500 hover:bg-orange-600",
   };
 
   return (
@@ -64,7 +65,7 @@ export default function Settings() {
                 : "bg-white border-gray-300 text-gray-800"
             }`}
           >
-            {["blue", "green", "purple", "rose"].map((color) => (
+            {["blue", "green", "purple", "rose","orange"].map((color) => (
               <option
                 key={color}
                 value={color}
@@ -91,8 +92,8 @@ export default function Settings() {
 
       {/* Success Toast */}
       {saved && (
-        <div className="mt-4 text-green-500 text-sm text-center font-medium">
-          ✅ Settings saved successfully!
+        <div className={`mt-4 text-${themeColor}-500 text-sm text-center font-medium`}>
+           Settings saved successfully!
         </div>
       )}
     </div>

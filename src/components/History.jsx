@@ -67,16 +67,16 @@ export default function HistoryPage() {
 
   return (
     <div
-      className={`min-h-screen p-4 transition-colors duration-300 ${
+      className={`min-h-screen transition-colors duration-300 ${
         settings.darkMode ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-900"
       }`}
     >
-      <h1 className={`text-3xl font-bold mb-6 text-${settings.themeColor}-500`}>
+      <h1 className={`text-2xl  mb-6 text-${settings.themeColor}-500`}>
         Candidate Analysis History
       </h1>
 
       <div
-        className={`overflow-x-auto rounded-2xl shadow-lg p-4 border transition-colors duration-300 ${
+        className={`overflow-x-auto rounded-2xl shadow-lg p-3 border transition-colors duration-300 ${
           settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
         }`}
       >
@@ -97,7 +97,7 @@ export default function HistoryPage() {
                 "Recommendation",
                 "Action",
               ].map((header) => (
-                <th key={header} className="px-4 py-3 font-semibold border-b">
+                <th key={header} className="px-2 py-2 font-semibold border-b">
                   {header}
                 </th>
               ))}
@@ -118,17 +118,17 @@ export default function HistoryPage() {
                     : "bg-gray-50 hover:bg-blue-50"
                 }`}
               >
-                <td className="px-4 py-3 border-b font-medium">{item.candidateName || "—"}</td>
+                <td className="px-2 py-2 border-b font-medium">{item.candidateName || "—"}</td>
 
-                <td className="px-4 py-3 border-b whitespace-nowrap">
+                <td className="px-2 py-2 border-b whitespace-nowrap">
                   {new Date(item.createdAt).toLocaleString()}
                 </td>
 
-                <td className="px-4 py-3 border-b max-w-xs truncate">{item.jobDescription}</td>
+                <td className="px-2 py-2 border-b max-w-xs truncate">{item.jobDescription}</td>
 
-                <td className="px-4 py-3 border-b text-center">
+                <td className="px-2 py-2 border-b text-center">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    className={`px-1 py-1 rounded-full text-xs font-semibold ${
                       item.matchPercentage >= 80
                         ? "bg-green-100 text-green-700"
                         : item.matchPercentage >= 60
@@ -141,7 +141,7 @@ export default function HistoryPage() {
                 </td>
 
                 {/* Matching Skills */}
-                <td className="px-4 py-3 border-b">
+                <td className="px-2 py-2 border-b">
                   <div className="flex flex-wrap gap-1">
                     {item.matchingSkills?.length ? (
                       <>
@@ -182,7 +182,7 @@ export default function HistoryPage() {
                 </td>
 
                 {/* Missing Skills */}
-                <td className="px-4 py-3 border-b">
+                <td className="px-2 py-2 border-b">
                   <div className="flex flex-wrap gap-1">
                     {item.missingSkills?.length ? (
                       <>
@@ -221,9 +221,9 @@ export default function HistoryPage() {
                 </td>
 
                 {/* Recommendation */}
-                <td className="px-4 py-3 border-b">
+                <td className="px-2 py-2 border-b">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    className={`px-1 py-1 rounded-full text-xs font-semibold ${
                       item.recommendation === "Strong match"
                         ? "bg-green-100 text-green-700"
                         : item.recommendation === "Good potential fit"
@@ -235,10 +235,10 @@ export default function HistoryPage() {
                   </span>
                 </td>
 
-                <td className="px-4 py-3 border-b">
+                <td className="px-2 py-2 border-b">
                   <button
                     onClick={() => navigate(`/dashboard/candidate/${item._id}`)}
-                    className={`px-3 py-1 rounded-md text-white bg-${settings.themeColor}-500 hover:bg-${settings.themeColor}-600 transition`}
+                    className={`px-1 py-1 rounded-md text-white bg-${settings.themeColor}-500 hover:bg-${settings.themeColor}-600 transition`}
                   >
                     View
                   </button>
@@ -260,7 +260,7 @@ export default function HistoryPage() {
           <button
             disabled={currentPage === 1}
             onClick={() => handlePageChange(currentPage - 1)}
-            className={`px-3 py-1 rounded-md border text-sm transition ${
+            className={`px-1 py-1 rounded-md border text-sm transition ${
               settings.darkMode ? "border-gray-600 hover:bg-gray-700" : "hover:bg-gray-100"
             } disabled:opacity-50`}
           >
@@ -271,7 +271,7 @@ export default function HistoryPage() {
             <button
               key={i + 1}
               onClick={() => handlePageChange(i + 1)}
-              className={`px-3 py-1 rounded-md text-sm border transition ${
+              className={`px-1 py-1 rounded-md text-sm border transition ${
                 currentPage === i + 1
                   ? `bg-${settings.themeColor}-500 text-white border-${settings.themeColor}-500`
                   : settings.darkMode
@@ -286,7 +286,7 @@ export default function HistoryPage() {
           <button
             disabled={currentPage === totalPages}
             onClick={() => handlePageChange(currentPage + 1)}
-            className={`px-3 py-1 rounded-md border text-sm transition ${
+            className={`px-1 py-1 rounded-md border text-sm transition ${
               settings.darkMode ? "border-gray-600 hover:bg-gray-700" : "hover:bg-gray-100"
             } disabled:opacity-50`}
           >
