@@ -1,9 +1,41 @@
-import { useState, useEffect, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/AxiosInstance"; // ✅ axios instance (withCredentials)
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
+import api from "../api/AxiosInstance";
 import { SettingsContext } from "../context/SettingsContext";
 
+/**
+ * ResumeAnalyzer.jsx
+ * Premium Dashboard layout (Sidebar + Topbar + Main)
+ *
+ * Drop-in replacement for your previous ResumeAnalyzer component.
+ * Requires: Tailwind CSS, recharts, api instance, SettingsContext
+ */
+
+const THEME_COLORS = {
+  blue: ["#1e40af", "#3b82f6"],
+  green: ["#16a34a", "#22c55e"],
+  yellow: ["#d97706", "#f59e0b"],
+  red: ["#dc2626", "#ef4444"],
+  gray: ["#374151", "#6b7280"],
+};
+
 export default function ResumeAnalyzer() {
+  const { settings } = useContext(SettingsContext);
+  const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [jobDesc, setJobDesc] = useState("");
   const [result, setResult] = useState(null);
@@ -11,33 +43,30 @@ export default function ResumeAnalyzer() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
 
-  const navigate = useNavigate();
-  const { settings } = useContext(SettingsContext);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-
     if (storedUser) {
       const userData = JSON.parse(storedUser);
       setUser(userData);
-
-      api
-        .get(`/results/getResults/${userData._id}`)
-        .then((res) => setHistory(res.data))
-        .catch((error) => {
-          console.error(error);
-
-          if (error.response?.status === 401) {
-            navigate("/login");
-          }
-        });
+      fetchHistory(userData._id);
     }
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchHistory = async (userId) => {
+    try {
+      const { data } = await api.get(`/results/getResults/${userId}`);
+      setHistory(data);
+    } catch (err) {
+      console.error("Error fetching history", err);
+      if (err?.response?.status === 401) navigate("/login");
+    }
+  };
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file || !jobDesc)
-      return alert("Please upload a resume and enter a job description");
+    if (!file || !jobDesc) return alert("Please upload a resume and enter a job description");
 
     const formData = new FormData();
     formData.append("file", file);
@@ -47,12 +76,10 @@ export default function ResumeAnalyzer() {
     setResult(null);
 
     try {
-      // ✅ Upload & analyze (cookie attached automatically)
       const { data } = await api.post("/upload-resume", formData);
-
       setResult(data);
 
-      // ✅ Save result
+      // Save result for history
       await api.post("/results/saveResult", {
         userId: user?._id || null,
         candidateName: data.candidate?.name || "Anonymous",
@@ -61,7 +88,7 @@ export default function ResumeAnalyzer() {
         matchPercentage: data.matchPercentage || 0,
         summary: data.summary || "",
         recommendation: data.recommendation || "",
-        experience: data.experience || "",
+        experience: data.experience || {},
         requiredSkills: data.requirementsSummary?.requiredSkills || [],
         candidateSkills: data.requirementsSummary?.candidateSkills || [],
         matchingSkills: data.requirementsSummary?.matchingSkills || [],
@@ -69,9 +96,7 @@ export default function ResumeAnalyzer() {
         createdAt: new Date(),
       });
 
-      // ✅ Refresh Analysis History
-      const histRes = await api.get(`/results/getResults/${user._id}`);
-      setHistory(histRes.data);
+      if (user?._id) fetchHistory(user._id);
     } catch (err) {
       console.error(err);
       alert("Error uploading or analyzing file");
@@ -80,293 +105,419 @@ export default function ResumeAnalyzer() {
     }
   };
 
+  // Utility: export result JSON
+  const exportJSON = () => {
+    if (!result) return;
+    const blob = new Blob([JSON.stringify(result, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(result.candidate?.name || "candidate").replace(/\s+/g, "_")}_analysis.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const copySummary = async () => {
+    if (!result) return;
+    const text = `Name: ${result.candidate?.name || "—"}\nMatch: ${result.matchPercentage}%\nRecommendation: ${result.recommendation}\nSummary: ${result.summary}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Summary copied to clipboard!");
+    } catch {
+      alert("Copy failed — please allow clipboard access.");
+    }
+  };
+
+  // Chart data preparation
+  const skillBarData = (result?.skillDetails || []).map((s) => ({
+    skill: s.skill,
+    score: s.matchScore || 0,
+  }));
+
+  const breakdownData = result
+    ? [
+      { name: "Skills", value: result.matchBreakdown?.skills ?? 0 },
+      { name: "Experience", value: result.matchBreakdown?.experience ?? 0 },
+      { name: "Education", value: result.matchBreakdown?.education ?? 0 },
+      { name: "Certifications", value: result.matchBreakdown?.certifications ?? 0 },
+      { name: "Keywords", value: result.matchBreakdown?.keywords ?? 0 },
+    ]
+    : [];
+
+  const COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#9ca3af"];
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-500 ${
-        settings.darkMode ? "bg-gray-900 text-gray-100" : `bg-gray-50 text-gray-800`
-      }`}
-    >
-      <main className="max-w-7xl mx-auto p-2">
-        <h2
-          className={`text-xl font-semibold mb-6 text-center ${
-            settings.darkMode ? "text-gray-100" : "text-gray-800"
-          }`}
+    <div className={`min-h-screen flex bg-gray-50 ${settings.darkMode ? "dark" : ""}`}>
+
+
+      {/* Main */}
+      <div className="flex-1 flex flex-col">
+        {/* Topbar */}
+        <header
+          className={`flex items-center justify-between px-6 py-4 border-b dark:border-gray-700 ${settings.darkMode ? "bg-gray-900 text-gray-100" : "bg-white"
+            }`}
         >
-          Analyze Your Resume
-        </h2>
-
-        {/* Upload Form */}
-        <form
-          onSubmit={handleUpload}
-          className={`space-y-4 p-2 rounded-2xl shadow-md border transition-all ${
-            settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
-          }`}
-        >
-          <input
-            type="file"
-            accept=".pdf,.docx"
-            onChange={(e) => setFile(e.target.files[0])}
-            className={`border p-3 w-full rounded-lg focus:ring-2 focus:outline-none transition ${
-              settings.darkMode
-                ? "bg-gray-700 border-gray-600 text-gray-200 focus:ring-blue-500"
-                : "bg-white border-gray-300 text-gray-800 focus:ring-blue-400"
-            }`}
-          />
-          <textarea
-            placeholder="Paste job description here..."
-            value={jobDesc}
-            onChange={(e) => setJobDesc(e.target.value)}
-            className={`border p-3 w-full h-32 rounded-lg focus:ring-2 focus:outline-none transition ${
-              settings.darkMode
-                ? "bg-gray-700 border-gray-600 text-gray-200 focus:ring-blue-500 placeholder-gray-400"
-                : "bg-white border-gray-300 text-gray-800 focus:ring-blue-400"
-            }`}
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-3 font-semibold rounded-lg text-white transition ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : `bg-${settings.themeColor}-500 hover:bg-${settings.themeColor}-600`
-            }`}
-          >
-            {loading ? "Analyzing..." : "Upload & Analyze"}
-          </button>
-        </form>
-
-        {/* Loader */}
-        {loading && (
-          <div
-            className={`absolute inset-0 flex flex-col items-center justify-center rounded-lg z-50 ${
-              settings.darkMode ? "bg-gray-900/80" : "bg-white/80"
-            } backdrop-blur-sm`}
-          >
-            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-3 font-medium">Analyzing your resume...</p>
+          <div className="flex items-center gap-4">
+            <div className="ml-6 hidden md:flex items-center gap-3 text-sm text-gray-500">
+              <span className="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800">AI Model: GPT-4o  Mini</span>
+              <span className="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800">Mode: Analysis</span>
+            </div>
           </div>
-        )}
 
-        {/* Analysis Result */}
-        {result && !loading && (
-          <div
-            className={`mt-6 p-2 border rounded-2xl shadow-md space-y-4 transition-all ${
-              settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
-            }`}
-          >
-            <h3
-              className={`text-xl font-bold ${
-                settings.darkMode ? "text-blue-400" : "text-blue-700"
-              }`}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                if (result) exportJSON();
+                else alert("No result to export");
+              }}
+              className="px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-800 text-sm"
+              title="Export JSON"
             >
-              Analysis Result
-            </h3>
+              Export JSON
+            </button>
 
-            <p>
-              <strong>Match Percentage:</strong>{" "}
-              <span className="text-green-500 font-semibold">
-                {result.matchPercentage || 0}%
-              </span>
-            </p>
-
-            <p>
-              <strong>Experience:</strong>{" "}
-              {result.experience?.totalYears
-                ? `${result.experience.totalYears} years total (${result.experience.relevantYears || 0} relevant)`
-                : result.experience || "N/A"}
-            </p>
-
-            <p>
-              <strong>Recommendation:</strong>{" "}
-              <span
-                className={`font-semibold ${
-                  result.recommendation?.includes("Strong")
-                    ? "text-green-500"
-                    : result.recommendation?.includes("Good")
-                    ? "text-yellow-500"
-                    : "text-red-500"
-                }`}
-              >
-                {result.recommendation || "N/A"}
-              </span>
-            </p>
-
-            {/* Skills Overview */}
-            <div className="space-y-4 border-t pt-4 border-gray-600/30">
-              <SkillSection
-                title="Required Skills"
-                skills={result.requirementsSummary?.requiredSkills}
-                color={
-                  settings.darkMode
-                    ? "bg-gray-700 text-gray-200"
-                    : "bg-gray-200 text-gray-700"
-                }
-              />
-              <SkillSection
-                title="Candidate Skills"
-                skills={result.requirementsSummary?.candidateSkills}
-                color={
-                  settings.darkMode
-                    ? "bg-blue-900 text-blue-300"
-                    : "bg-blue-100 text-blue-700"
-                }
-              />
-              <SkillSection
-                title="Matching Skills"
-                skills={result.requirementsSummary?.matchingSkills}
-                color={
-                  settings.darkMode
-                    ? "bg-green-900 text-green-300"
-                    : "bg-green-100 text-green-700"
-                }
-              />
-              <SkillSection
-                title="Missing Skills"
-                skills={result.requirementsSummary?.missingSkills}
-                color={
-                  settings.darkMode
-                    ? "bg-red-900 text-red-300"
-                    : "bg-red-100 text-red-700"
-                }
-              />
-            </div>
-
-            <p className="pt-3 border-t border-gray-600/30 leading-relaxed">
-              <strong>Summary:</strong> {result.summary || "N/A"}
-            </p>
+            <button
+              onClick={() => copySummary()}
+              className="px-3 py-2 rounded-md bg-blue-600 text-white text-sm"
+            >
+              Copy Summary
+            </button>
           </div>
-        )}
+        </header>
 
-        {/* History Table */}
-        {history.length > 0 && !loading && (
-          <div
-            className={`mt-10 p-2 rounded-2xl shadow-md border transition-all ${
-              settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className={`text-xl font-bold ${
-                  settings.darkMode ? "text-gray-100" : "text-gray-800"
-                }`}
+        {/* Content */}
+        <main className="p-6 overflow-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left column: form + history */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Upload Card */}
+              <section
+                className={`p-4 rounded-2xl shadow-sm border ${settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white"
+                  }`}
               >
-                Recent Analysis
-              </h3>
-              <button
-                onClick={() => navigate("history")}
-                className={`font-medium hover:underline ${
-                  settings.darkMode
-                    ? "text-blue-400 hover:text-blue-300"
-                    : "text-blue-600 hover:text-blue-700"
-                }`}
-              >
-                View Full History →
-              </button>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table
-                className={`min-w-full border text-sm ${
-                  settings.darkMode
-                    ? "border-gray-700 text-gray-200"
-                    : "border-gray-200 text-gray-800"
-                }`}
-              >
-                <thead
-                  className={`${settings.darkMode ? "bg-gray-700" : "bg-gray-100"}`}
-                >
-                  <tr>
-                    {[
-                      "ID",
-                      "Candidate",
-                      "Date",
-                      "Job Description",
-                      "Match %",
-                      "Matching Skills",
-                      "Missing Skills",
-                      "Recommendation",
-                      "Action",
-                    ].map((h) => (
-                      <th key={h} className="border px-2 py-2 text-left">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.slice(0, 5).map((item) => (
-                    <tr
-                      key={item._id}
-                      className={`transition ${
-                        settings.darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"
-                      }`}
-                    >
-                      <td className="border px-2 py-2">{item._id.slice(-6)}</td>
-                      <td className="border px-2 py-2">{item.candidateName || "—"}</td>
-                      <td className="border px-2 py-2">
-                        {new Date(item.createdAt).toLocaleString()}
-                      </td>
-                      <td className="border px-2 py-2 max-w-xs truncate">
-                        {item.jobDescription}
-                      </td>
-                      <td className="border px-2 py-2 text-center font-semibold">
-                        {item.matchPercentage}%
-                      </td>
-                      <td className="border px-2 py-2 text-green-500">
-                        {item.matchingSkills?.join(", ") || "-"}
-                      </td>
-                      <td className="border px-2 py-2 text-red-500">
-                        {item.missingSkills?.join(", ") || "-"}
-                      </td>
-                      <td
-                        className={`border px-2 py-2 font-medium ${
-                          item.recommendation === "Strong match"
-                            ? "text-green-500"
-                            : item.recommendation === "Good potential fit"
-                            ? "text-yellow-500"
-                            : "text-red-500"
+                <h3 className="font-semibold mb-2">Upload & Analyze</h3>
+                <form onSubmit={handleUpload} className="space-y-3">
+                  <input
+                    type="file"
+                    accept=".pdf,.docx"
+                    onChange={(e) => setFile(e.target.files[0])}
+                    className="w-full text-sm"
+                  />
+                  <textarea
+                    rows={6}
+                    placeholder="Paste the job description here..."
+                    value={jobDesc}
+                    onChange={(e) => setJobDesc(e.target.value)}
+                    className="w-full border rounded-md p-2 text-sm"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className={`flex-1 px-3 py-2 rounded-md text-white font-medium ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
                         }`}
-                      >
-                        {item.recommendation || "-"}
-                      </td>
-                      <td className="border px-2 py-2 text-center">
-                        <button
-                          onClick={() => navigate(`candidate/${item._id}`)}
-                          className={`px-3 py-1 rounded-md text-white transition bg-${settings.themeColor}-500 hover:bg-${settings.themeColor}-600`}
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
+                    >
+                      {loading ? "Analyzing..." : "Upload & Analyze"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFile(null);
+                        setJobDesc("");
+                        setResult(null);
+                      }}
+                      className="px-3 py-2 rounded-md border text-sm"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </form>
+              </section>
+
+              {/* Recent History (compact) */}
+              <section
+                className={`p-4 rounded-2xl shadow-sm border ${settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white"
+                  }`}
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold">Recent Analysis</h4>
+                  <button onClick={() => navigate("history")} className="text-sm text-blue-600">
+                    View all
+                  </button>
+                </div>
+
+                <div className="mt-3 space-y-3 max-h-64 overflow-auto">
+                  {history.length === 0 && <p className="text-sm text-gray-500">No history yet</p>}
+                  {history.slice(0, 6).map((h) => (
+                    <div
+                      key={h._id}
+                      className="p-2 rounded-md border hover:shadow-md cursor-pointer"
+                      onClick={() => {
+                        // quick load
+                        setResult({
+                          ...h,
+                          // in case older history doesn't have full result structure,
+                          // try to keep fields consistent
+                          candidate: { name: h.candidateName },
+                          matchPercentage: h.matchPercentage,
+                          summary: h.summary,
+                          recommendation: h.recommendation,
+                          confidence: h.confidence ?? 60,
+                          experience: h.experience ?? {},
+                          requirementsSummary: {
+                            requiredSkills: h.requiredSkills || [],
+                            candidateSkills: h.candidateSkills || [],
+                            matchingSkills: h.matchingSkills || [],
+                            missingSkills: h.missingSkills || [],
+                          },
+                          skillDetails: h.skillDetails || [],
+                          suggestedInterviewQuestions: h.suggestedInterviewQuestions || [],
+                          suggestedResumeImprovements: h.suggestedResumeImprovements || [],
+                          redFlags: h.redFlags || [],
+                          matchBreakdown: h.matchBreakdown || {},
+                        });
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium">{h.candidateName || "Anonymous"}</div>
+                          <div className="text-xs text-gray-500">{new Date(h.createdAt).toLocaleString()}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold">{h.matchPercentage}%</div>
+                          <div className="text-xs text-gray-500">{h.recommendation}</div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </section>
+
+              {/* Quick Tips */}
+              <section className={`p-4 rounded-2xl shadow-sm border ${settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white"}`}>
+                <h4 className="font-semibold">Tips</h4>
+                <ul className="mt-2 text-sm text-gray-600 list-disc ml-5">
+                  <li>Include explicit project outcomes & metrics.</li>
+                  <li>Add years of experience per technology (e.g., React — 2 yrs).</li>
+                  <li>Mention testing / TypeScript / CI if you have it.</li>
+                </ul>
+              </section>
+            </div>
+
+            {/* Middle & Right columns: result & charts */}
+            <div className="lg:col-span-2 grid grid-cols-1 xl:grid-cols-3 gap-6">
+              {/* Overview Cards (span full width on small screens) */}
+              <div className="xl:col-span-2 space-y-4">
+                <div className={`p-4 rounded-2xl shadow-sm border flex items-center justify-between gap-4 ${settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white"}`}>
+                  {/* Left: big match ring */}
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-32 h-32">
+                      <svg className="w-32 h-32 -rotate-90">
+                        <circle cx="64" cy="64" r="56" stroke={settings.darkMode ? "#1f2937" : "#e6e6e6"} strokeWidth="12" fill="none" />
+                        <circle
+                          cx="64"
+                          cy="64"
+                          r="56"
+                          stroke={result ? getColorForPercentage(result.matchPercentage) : "#80ffaeff"}
+                          strokeWidth="12"
+                          strokeDasharray={2 * Math.PI * 56}
+                          strokeDashoffset={result ? (2 * Math.PI * 56) * (1 - (result.matchPercentage / 100)) : 2 * Math.PI * 56}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <div className="text-2xl font-bold" style={{color:"white"}}>{result?.matchPercentage ?? "—"}%</div>
+                        <div className="text-xs text-gray-500">match</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-lg font-semibold">{result?.candidate?.name || "Candidate"}</div>
+                      <div className="text-sm text-gray-500">{result?.candidate?.location || "—"}</div>
+                      <div className="mt-2 text-sm">
+                        <span className="font-medium">Recommendation:</span>{" "}
+                        <span className={`${result?.recommendation?.includes("Strong") ? "text-green-600" : result?.recommendation?.includes("Good") ? "text-yellow-600" : "text-red-600"}`}>
+                          {result?.recommendation || "—"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: KPI cards */}
+                  <div className="flex gap-3 items-center">
+                    <MiniKPI label="Confidence" value={`${result?.confidence ?? "—"}%`} color="yellow" />
+                    <MiniKPI label="Total Exp" value={`${result?.experience?.totalYears ?? "—"} yrs`} color="blue" />
+                    <MiniKPI label="Relevant Exp" value={`${result?.experience?.relevantYears ?? "—"} yrs`} color="green" />
+                  </div>
+                </div>
+
+                {/* Summary & actions */}
+                <div className={`p-4 rounded-2xl shadow-sm border ${settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white"}`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h4 className="font-semibold mb-1">Executive Summary</h4>
+                      <p className="text-sm text-gray-600">{result?.summary || "No analysis yet. Upload a resume and paste a job description to start."}</p>
+
+                      <div className="mt-3 flex gap-2">
+                        <button onClick={() => exportJSON()} className="px-3 py-2 rounded-md bg-gray-100 text-sm">Export JSON</button>
+                        <button onClick={() => copySummary()} className="px-3 py-2 rounded-md bg-blue-600 text-white text-sm">Copy Summary</button>
+                        <button
+                          onClick={() => {
+                            // Open printable report (simple new window)
+                            const reportWindow = window.open("", "_blank");
+                            reportWindow.document.write(`<pre>${JSON.stringify(result, null, 2)}</pre>`);
+                            reportWindow.document.close();
+                          }}
+                          className="px-3 py-2 rounded-md border text-sm"
+                        >
+                          Print / Preview
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Quick metrics */}
+                    <div className="w-60">
+                      <div className="text-sm text-gray-500">Match Breakdown</div>
+                      <div style={{ width: 200, height: 140 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={breakdownData} dataKey="value" nameKey="name" innerRadius={30} outerRadius={55} paddingAngle={2}>
+                              {breakdownData.map((entry, idx) => (
+                                <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Legend verticalAlign="bottom" height={24} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Skill bar chart */}
+                <div className={`p-4 rounded-2xl shadow-sm border ${settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white"}`}>
+                  <h4 className="font-semibold mb-3">Skill Match Scores</h4>
+                  {skillBarData.length === 0 ? (
+                    <p className="text-sm text-gray-500">No skill details available.</p>
+                  ) : (
+                    <div style={{ width: "100%", height: 260 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={skillBarData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                          <XAxis dataKey="skill" tick={{ fontSize: 12 }} />
+                          <YAxis domain={[0, 100]} />
+                          <Tooltip />
+                          <Bar dataKey="score" radius={[6, 6, 0, 0]}>
+                            {skillBarData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={getColorForPercentage(entry.score)} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right column: suggestions, projects, questions */}
+              <div className="space-y-4">
+                {/* Top Projects */}
+                <section className={`p-4 rounded-2xl shadow-sm border ${settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white"}`}>
+                  <h4 className="font-semibold mb-3">Top Projects</h4>
+                  {result?.experience?.topProjects?.length ? (
+                    <div className="space-y-3">
+                      {result.experience.topProjects.map((p, i) => (
+                        <div key={i} className="p-3 rounded-md border hover:shadow">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{p.title}</div>
+                              <div className="text-xs text-gray-500">{p.brief}</div>
+                            </div>
+                            <div className="text-xs text-gray-500">{p.techStack?.join(", ")}</div>
+                          </div>
+                          <div className="text-sm text-gray-600 mt-2"><strong>Impact:</strong> {p.impact}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No projects found in the analysis.</p>
+                  )}
+                </section>
+
+                {/* Interview Questions */}
+                <section className={`p-4 rounded-2xl shadow-sm border ${settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white"}`}>
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">Interview Questions</h4>
+                    <button
+                      onClick={() => {
+                        // copy questions
+                        const text = (result?.suggestedInterviewQuestions || []).join("\n");
+                        if (!text) return alert("No questions to copy");
+                        navigator.clipboard.writeText(text).then(() => alert("Questions copied"));
+                      }}
+                      className="text-xs text-blue-600"
+                    >
+                      Copy
+                    </button>
+                  </div>
+
+                  <ul className="mt-2 list-decimal list-inside text-sm text-gray-700">
+                    {result?.suggestedInterviewQuestions?.length ? (
+                      result.suggestedInterviewQuestions.map((q, i) => <li key={i} className="mb-1">{q}</li>)
+                    ) : (
+                      <li className="text-gray-500">No questions generated.</li>
+                    )}
+                  </ul>
+                </section>
+
+                {/* Resume Improvements & Red Flags */}
+                <section className={`p-4 rounded-2xl shadow-sm border ${settings.darkMode ? "bg-gray-800 border-gray-700" : "bg-white"}`}>
+                  <h4 className="font-semibold">Resume Improvements</h4>
+                  <ul className="mt-2 list-disc ml-5 text-sm text-gray-700">
+                    {result?.suggestedResumeImprovements?.length ? (
+                      result.suggestedResumeImprovements.map((s, i) => <li key={i} className="mb-1">{s}</li>)
+                    ) : (
+                      <li className="text-gray-500">No suggestions available.</li>
+                    )}
+                  </ul>
+
+                  {result?.redFlags?.length > 0 && (
+                    <>
+                      <h5 className="mt-4 text-sm font-semibold text-red-600">Red Flags</h5>
+                      <ul className="mt-2 list-disc ml-5 text-sm text-red-500">
+                        {result.redFlags.map((r, i) => <li key={i}>{r}</li>)}
+                      </ul>
+                    </>
+                  )}
+                </section>
+              </div>
             </div>
           </div>
-        )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
 
-// 🔹 Skill Section Component
-function SkillSection({ title, skills, color }) {
+/* -----------------------------
+   Small UI pieces / helpers
+------------------------------ */
+
+function MiniKPI({ label, value, color = "blue" }) {
+  const bg = THEME_COLORS[color]?.[0] ?? THEME_COLORS.blue[0];
   return (
-    <div>
-      <p className="font-medium mb-1">{title}:</p>
-      <div className="flex flex-wrap gap-2">
-        {skills?.length > 0 ? (
-          skills.map((s, i) => (
-            <span key={i} className={`px-2 py-1 rounded-full text-sm ${color}`}>
-              {s}
-            </span>
-          ))
-        ) : (
-          <p className="text-gray-400">N/A</p>
-        )}
-      </div>
+    <div className="px-3 py-2 rounded-md" style={{ background: "#fff0", minWidth: 110 }}>
+      <div className="text-xs text-gray-500">{label}</div>
+      <div className="text-lg font-semibold">{value}</div>
     </div>
   );
+}
+
+function getColorForPercentage(pct = 0) {
+  const n = Number(pct);
+  if (isNaN(n)) return "#22c55e";
+  if (n >= 80) return "#16a34a";
+  if (n >= 60) return "#22c55e";
+  if (n >= 40) return "#f59e0b";
+  return "#ef4444";
 }

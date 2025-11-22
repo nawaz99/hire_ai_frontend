@@ -1,14 +1,9 @@
 import { useNavigate, NavLink, Outlet, useLocation, Link } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import startogen_logo from "../assets/startogen_logo.png";
+import startogen_icon from "../assets/startogen_icon.png";
 import {
-  LogOut,
-  FileText,
-  User,
-  Settings,
   Menu,
-  X,
-  Clock,
 } from "lucide-react";
 import { SettingsContext } from "../context/SettingsContext";
 import { logoutUser } from "../api/AxiosInstance";
@@ -17,7 +12,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const { settings, setSettings } = useContext(SettingsContext);
 
@@ -62,6 +57,19 @@ export default function DashboardLayout() {
     return "Dashboard";
   };
 
+  function NavItem({ icon, label, active, sidebarOpen, onClick }) {
+    return (
+      <button
+        onClick={onClick}
+        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-800 ${active ? "bg-blue-50 dark:bg-blue-900/40 font-medium" : ""
+          }`}
+      >
+        <span className="text-lg">{icon}</span>
+        {sidebarOpen && <span>{label}</span>}
+      </button>
+    );
+  } 1
+
   // Map theme colors
   const theme = settings.themeColor || "blue";
 
@@ -72,110 +80,73 @@ export default function DashboardLayout() {
         : "bg-gray-50 text-gray-900"
         }`}
     >
+
       {/* Sidebar */}
       <aside
-        className={`fixed md:static z-40 border-r shadow-sm w-64 flex flex-col justify-between transform transition-transform duration-300 ${settings.darkMode
-          ? "bg-gray-800 border-gray-700"
-          : "bg-white border-gray-200"
-          } ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+        className={`flex-shrink-0 transition-all duration-300 ${sidebarOpen ? "w-64" : "w-16"
+          } bg-white dark:bg-gray-900 border-r dark:border-gray-700`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h1
-            className={`text-2xl font-bold ${theme === "blue"
-              ? "text-blue-500"
-              : theme === "green"
-                ? "text-green-500"
-                : theme === "purple"
-                  ? "text-purple-500"
-                  : theme === "rose"
-                    ? "text-rose-500"
-                    : theme === "orange"
-                      ? "text-orange-500"
-                      : "text-blue-500"
-              }`}
-          >
-            <div className="flex flex-col items-start gap-1">
-              <Link to="/dashboard" className="flex items-center">
-                <img
-                  src={startogen_logo}
-                  alt="Startogen Logo"
-                  className="h-10 w-auto object-contain"
-                />
-              </Link>
+        <div className="h-full flex flex-col">
 
-              <h1 className="text-sm font-bold text-theme leading-tight pl-1">
-                AI Resume Analyzer
-              </h1>
-            </div>
-
-          </h1>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="md:hidden text-gray-400 hover:text-gray-200"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <nav className="px-3 py-4 flex-1 space-y-1 overflow-y-auto">
-          {[
-            { to: "/dashboard", icon: FileText, label: "Analyzer" },
-            { to: "/dashboard/profile", icon: User, label: "Profile" },
-            { to: "/dashboard/history", icon: Clock, label: "History" },
-            { to: "/dashboard/settings", icon: Settings, label: "Settings" },
-          ].map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 w-full p-3 rounded-lg transition-colors duration-200 ${isActive
-                  ? `${theme === "blue"
-                    ? "bg-blue-100 text-blue-700"
-                    : theme === "green"
-                      ? "bg-green-100 text-green-700"
-                      : theme === "purple"
-                        ? "bg-purple-100 text-purple-700"
-                        : theme === "rose"
-                          ? "bg-rose-100 text-rose-700"
-                          : theme === "orange"
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-blue-100 text-blue-700"
-                  } font-medium`
-                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`
-              }
-              onClick={() => setSidebarOpen(false)}
-            >
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Sidebar Logout Button */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={handleLogout}
-            disabled={logoutLoading}
-            className={`flex items-center gap-2 w-full p-2 rounded-lg font-medium transition ${logoutLoading
-              ? "bg-gray-200 cursor-not-allowed text-gray-500"
-              : "text-red-600 hover:bg-red-50"
-              }`}
-          >
-            {logoutLoading ? (
-              <>
-                <span className="loader w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></span>
-                Logging out...
-              </>
+          <div className="px-4 py-5 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+            {sidebarOpen ? (
+              <div className="flex flex-col items-start gap-1">
+                <a href="/dashboard" className="flex items-center">
+                  <img
+                    src={startogen_logo}
+                    alt="Startogen Logo"
+                    className="h-10 w-auto object-contain"
+                  />
+                </a>
+                <h1 className="text-sm font-bold text-blue-500 leading-tight pl-1">
+                  AI Resume Analyzer
+                </h1>
+              </div>
             ) : (
-              <>
-                <LogOut className="w-5 h-5" />
-                Logout
-              </>
+              <img
+                src={startogen_icon}
+                alt="Startogen Icon"
+                className="h-10 w-auto object-contain mx-auto"
+              />
             )}
-          </button>
+
+            <button
+              aria-label="Toggle sidebar"
+              onClick={() => setSidebarOpen((s) => !s)}
+              className="ml-auto text-gray-400 hover:text-gray-700"
+              title="Toggle"
+            >
+              {sidebarOpen ? "«" : "»"}
+            </button>
+          </div>
+
+
+
+          <nav className="flex-1 px-2 py-4">
+            <NavItem icon="📄" label="Analyze" active sidebarOpen={sidebarOpen} onClick={() => navigate("/dashboard")} />
+            <NavItem icon="📚" label="History" sidebarOpen={sidebarOpen} onClick={() => navigate("history")} />
+            <NavItem icon="👤" label="Profile" sidebarOpen={sidebarOpen} onClick={() => navigate("profile")} />
+            <NavItem icon="⚙️" label="Settings" sidebarOpen={sidebarOpen} onClick={() => navigate("settings")} />
+          </nav>
+
+          <div className="px-3 py-4">
+            <button
+              onClick={() => {
+                if (user) {
+                  localStorage.removeItem("user");
+                  navigate("/login");
+                } else {
+                  navigate("/login");
+                }
+              }}
+              className="w-full px-3 py-2 rounded-md bg-red-600 text-white text-sm"
+            >
+              {user ? "Logout" : "Login"}
+            </button>
+          </div>
         </div>
       </aside>
+
 
       {sidebarOpen && (
         <div
@@ -193,13 +164,6 @@ export default function DashboardLayout() {
             }`}
         >
           <div className="flex items-center gap-4">
-            <button
-              className="md:hidden text-gray-400 hover:text-gray-200"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu size={22} />
-            </button>
-            <h2 className="text-lg font-semibold">{getPageTitle()}</h2>
           </div>
 
           <div className="flex items-center gap-4">
